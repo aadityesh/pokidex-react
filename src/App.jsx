@@ -20,6 +20,9 @@ function App() {
   const pokemonURL = import.meta.env.VITE_FETCH_POKEMON_URL;
   const colorURL = import.meta.env.VITE_FETCH_POKEMON_COLOR_URL;
 
+  console.log(pokemonURL)
+  console.log(colorURL)
+
   // Pokemon Fetch
 
   async function fetchAllPokemons() {
@@ -31,7 +34,7 @@ function App() {
     }
 
     setPokemons(temp_allPokemons);
-    // console.log(temp_allPokemons);
+    console.log(temp_allPokemons);
   }
 
   async function fetchAllColors() {
@@ -60,6 +63,7 @@ function App() {
       }
 
       setColorMap(tempMap);
+      console.log(tempMap)
     }
     fetchColors();
   }
