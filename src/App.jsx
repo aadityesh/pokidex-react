@@ -20,20 +20,23 @@ function App() {
   const pokemonURL = import.meta.env.VITE_FETCH_POKEMON_URL;
   const colorURL = import.meta.env.VITE_FETCH_POKEMON_COLOR_URL;
 
-  console.log(pokemonURL)
-  console.log(colorURL)
-
   // Pokemon Fetch
 
   async function fetchAllPokemons() {
     const temp_allPokemons = [];
-    for (let i = 1; i <= 1000; i++) {
+    let end = currentPage * 50;
+    let start = end - 49;
+
+    console.log("***", start, " ", end);
+
+    for (let i = start; i <= end; i++) {
       let data = await fetch(pokemonURL + `/${i}/`);
       data = await data.json();
       temp_allPokemons.push(data);
     }
 
     setPokemons(temp_allPokemons);
+
     console.log(temp_allPokemons);
   }
 
@@ -42,34 +45,43 @@ function App() {
 
     async function fetchColors() {
       const responses = [];
-      for (let i = 1; i <= 10; i++) {
-        let pokemonColor = await fetch(colorURL + `/${i}/`); // fetch color
-        pokemonColor = await pokemonColor.json();
-        responses.push(pokemonColor);
-      }
+      const cache = localStorage.getItem("colors");
 
-      for (let i = 0; i <= 9; i++) {
-        responses[i].pokemon_species.map((pokemon) => {
-          if (
-            responses[i].name != "black" &&
-            responses[i].name != "white" &&
-            responses[i].name != "gray"
-          ) {
-            tempMap[pokemon.name] = responses[i].name;
-          } else {
-            tempMap[pokemon.name] = "grey";
-          }
-        });
-      }
+      if (cache !== null) {
+        setColorMap(JSON.parse(cache));
+      } else {
+        for (let i = 1; i <= 10; i++) {
+          let pokemonColor = await fetch(colorURL + `/${i}/`); // fetch color
+          pokemonColor = await pokemonColor.json();
+          responses.push(pokemonColor);
+        }
 
-      setColorMap(tempMap);
-      console.log(tempMap)
+        for (let i = 0; i <= 9; i++) {
+          responses[i].pokemon_species.map((pokemon) => {
+            if (
+              responses[i].name != "black" &&
+              responses[i].name != "white" &&
+              responses[i].name != "gray"
+            ) {
+              tempMap[pokemon.name] = responses[i].name;
+            } else {
+              tempMap[pokemon.name] = "grey";
+            }
+          });
+        }
+
+        localStorage.setItem("colors", JSON.stringify(tempMap));
+        setColorMap(tempMap);
+      }
     }
+
     fetchColors();
   }
+
   useEffect(() => {
     let fetch = async () => {
       try {
+        setIsLoading(true);
         await fetchAllPokemons();
         await fetchAllColors();
       } catch (error) {
@@ -79,14 +91,13 @@ function App() {
       }
     };
     fetch();
-  }, []);
+  }, [currentPage]);
 
   // Color Fetch
 
-  let totalPages = pokemons.length / postsPerPage;
-  let LastIndex = currentPage * postsPerPage;
-  let firstIndex = LastIndex - postsPerPage;
-
+  let totalPages = 10;
+  let LastIndex = 50;
+  let firstIndex = 0;
   // handles search box
 
   // handles drop-down menu
@@ -133,7 +144,8 @@ function App() {
             value.id == `${searchInput}` ||
             value.types.some((type) => type.type.name == searchInput)
         );
-  console.log(postsToShow);
+  // console.log(postsToShow);
+
   return (
     <>
       <div className="max-w-[80%] py-[30px] mx-auto">
